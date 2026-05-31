@@ -1,3 +1,0 @@
-a = {"item" : "hello" , "status" : "no"}
-
-print(f"{item["status"]}")
