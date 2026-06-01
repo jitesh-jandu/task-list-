@@ -2,10 +2,11 @@
 
 
 import json
-
+undo = []
 try :
     with open ("tsk.json","r") as f :
         tasks = json.load(f)
+        
 
 except FileNotFoundError :
     tasks = []        
@@ -29,6 +30,8 @@ def add () :
     ad = input("enter what to add:--").strip().lower()
     if ad :
         tasks.append({"item":ad,"status":False})
+        undo.append({"action":"add","item":ad})
+
         print(f"task {ad} added !")
 
         with open ("tsk.json","w") as f :
@@ -42,6 +45,7 @@ def delete () :
 
     if 0 <= dele < (len(tasks)) :
         delet = tasks[dele]["item"]
+        undo.append({"action":"delete","index":dele,"data": tasks[dele]})
         del tasks[dele]
 
         print(f"task {delet} deleted !")
@@ -59,15 +63,47 @@ def mark ():
     marks = mar - 1
 
     if 0 <= marks < (len(tasks)) :
-       tasks[marks]["status"] = not tasks[marks]["status"]
+        undo.append({"action":"mark","index":marks})
 
-       print("task updated !")
+        tasks[marks]["status"] = not tasks[marks]["status"]
 
-       with open ("tsk.json","w") as f :
-        json.dump(tasks,f)
+        print("task updated !")
+
+        with open ("tsk.json","w") as f :
+         json.dump(tasks,f)
 
     else :
-        print("not a valid task !")    
+        print("not a valid task !") 
+
+
+
+
+def undof() :
+    if not undo :
+        print("nothing to undo !")
+        return
+    lastchange = undo.pop()
+
+    if lastchange["action"] == "add" :
+        del tasks[-1] 
+        print("add action undone !")
+
+    elif lastchange["action"] == "mark":
+        target = lastchange["index"]
+
+        tasks[target]["status"] = not tasks[target]["status"]  
+        print("mark as undone !")
+
+    elif lastchange["action"] == "delete" :
+
+        tasks.insert(lastchange["index"],lastchange["data"])
+
+        print("data restored !")   
+
+
+
+
+
     
 # main loop starting :--
 
@@ -77,7 +113,8 @@ while True :
     print("2. add task ")
     print("3. delete task ")
     print("4. mark as read ")
-    print("5. exit ")
+    print("5. undo ")
+    print("6. exit ")
 
     try :
         print("-"*42)
@@ -93,13 +130,14 @@ while True :
         add()
 
     elif choice == 3 :
-        
         delete()
 
     elif choice == 4 :
         mark()
+    elif choice == 5 :
+        undof()
 
-    if choice == 5 :
+    if choice == 6 :
         print("you are exiting")
         print(" "*42)
         print("made by * jitesh jandu *")
@@ -194,6 +232,45 @@ while True :
 # * Ctrl + Delete: Cursor ke RIGHT side wale poore word ko ek jhatke mein delete karne ke liye.
 # ============================================================
 
+# ============================================================
+#   📝 PYTHON TO-DO APP REVISION NOTES (PART 3 - BY JITESH)
+# ============================================================
+
+# 14. STACK DATA STRUCTURE & LIFO LOGIC:
+# --------------------------------------
+# * Stack ka matlab hota hai dabbe ke upar dabba (like a stack of plates).
+# * Yeh LIFO (Last In, First Out) principle par kaam karta hai.
+# * `.append()` se hum data ko stack ke top par PUSH (save) karte hain.
+# * `.pop()` se hum stack ke sabse aakhri (latest) element ko memory se nikaalte (POP) hain.
+
+# 15. NAME COLLISION TRAP (VARIABLE VS FUNCTION):
+# ------------------------------------------------
+# * Agar list ka naam 'undo' hai, toh function ka naam 'def undo():' nahi rakh sakte.
+# * Aisa karne par Python confuse ho jata hai aur 'TypeError: function object has no attribute pop' ka crash deta hai.
+# * Solution: Function ka naam 'def undo_action():' rakha taaki dono alag pehchane jayein.
+
+# 16. THE PYTHON '.INSERT()' MAGIC:
+# ----------------------------------
+# * Formula: list_name.insert(index_position, data_packet)
+# * Jab hum beech se delete hua task wapas laate hain, toh `.insert()` use karte hain.
+# * Yeh function automatic baaki saare elements ko ek-ek seat aage khisakane (indexes adjust karne) ka kaam khud kar leta hai.
+
+# 17. NEGATIVE INDEXING FOR QUICK DELETE:
+# ----------------------------------------
+# * Code: del tasks[-1]
+# * Python mein [-1] ka matlab hota hai list ka sabse aakhri element (peeche se pehla).
+# * Jab hum 'add' action ko undo karte hain, toh bina kisi calculation ke direct 'del tasks[-1]' chalakar last added element ko uda sakte hain.
+
+# 18. STATE SNAPSHOT (NO EXTRA STATUS UPDATE NEEDED):
+# ---------------------------------------------------
+# * Jab hum 'tasks[dele]' ko 'undo' stack mein append karte hain, toh sirf naam nahi, balki poori dictionary (item + status) ka snapshot copy hota hai.
+# * Isiliye undo karte waqt hume status ko alag se True/False nahi karna padta, task jaisa delete hua tha (Pending ya Done), waisa ka waisa hi restore ho jata hai!
+
+# 19. AI/ML CONNECTION (BACKTRACKING & BACKPROPAGATION):
+# ------------------------------------------------------
+# * AI algorithms (jaise chess bots ya LLM token generation) jab galat raste par jaate hain, toh stack ka use karke Backtrack (Undo) karte hain.
+# * Neural Networks ke training mein (Backpropagation), forward pass ka data stack mein push hota hai, aur errors ko theek karne ke liye backward pass mein use pop kiya jata hai.
+# ============================================================
 
 
 
